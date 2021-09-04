@@ -1,5 +1,10 @@
 """
 Example script that scrapes data from the IEM ASOS download service
+
+The only argument is for station(s).
+------------------------------------
+Example:
+    $ python IEM_asos.py CO -> get all Colorado stations
 """
 from __future__ import print_function
 import json
@@ -80,13 +85,28 @@ def get_stations_from_networks():
 def main():
     """Our main method"""
     # timestamps in UTC to request data for
-    startts = datetime.datetime(2021, 7, 11,12)
-    endts = datetime.datetime(2021, 7, 12,18)
+    #startts = datetime.datetime(2021, 7, 11,12)
+    #endts = datetime.datetime(2021, 7, 12,18)
+
+
+    startts = input("start date? ** year (2021), month number (7), day (11), and hour (12)")
+    endts = input("end date? ** leave blank for same as start date")
+    time_vals = startts.split()
+    time_vals = map(int, time_vals)
+    time_vals = list(time_vals)
+
+    startts2 = datetime.datetime(*time_vals)
+    if endts == "":
+        endts2 = startts2
+    else:
+        end_time_vals = endts.split()
+        end_time_vals = list(map(int, end_time_vals))
+        endts2 = datetime.datetime(*end_time_vals)
 
     service = SERVICE + "data=all&tz=Etc/UTC&format=comma&latlon=yes&"
 
-    service += startts.strftime('year1=%Y&month1=%m&day1=%d&')
-    service += endts.strftime('year2=%Y&month2=%m&day2=%d&')
+    service += startts2.strftime('year1=%Y&month1=%m&day1=%d&')
+    service += endts2.strftime('year2=%Y&month2=%m&day2=%d&')
 
     # Two examples of how to specify a list of stations
     stations = get_stations_from_networks()
@@ -95,20 +115,14 @@ def main():
         uri = '%s&station=%s' % (service, station)
         print('Downloading: %s' % (station, ))
         data = download_data(uri)
-        outfn = '%s_%s_%s.txt' % (station, startts.strftime("%Y%m%d%H%M"),
-                                  endts.strftime("%Y%m%d%H%M"))
-        path = "/Users/chowdahead/wx-data/2021_07_11/ASOS/"
+        outfn = '%s_%s_%s.txt' % (station, startts2.strftime("%Y%m%d%H%M"),
+                                  endts2.strftime("%Y%m%d%H%M"))
+
+        path = "data/"
         out = open(path+outfn, 'w')
         out.write(data)
         out.close()
+    print("\nAll done.")
         
-    '''
-    friendship_test = input("\nALl done, y'all. Thanks for hanging out, wannna grab a drink? (y/n)  ")
-    if friendship_test == "y":
-        print("Yeeeehhhhaaaaaaawww. Oh wait, sorry, I'm busy. Frowny Face")
-    else:
-        print("Frick off.")
-    '''
-
 if __name__ == '__main__':
     main()
